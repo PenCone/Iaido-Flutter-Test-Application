@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iaido_test_application/pages.dart';
+import 'package:get/get.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' as rootBundle;
+
 // import 'package:google_fonts/google_fonts.dart';
-// ignore: import_of_legacy_library_into_null_safe
 // import 'package:splashscreen/splashscreen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
@@ -20,7 +24,7 @@ class MyApp extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       // onTap: _handleUserInteraction,
       // onPanDown: _handleUserInteraction,
-      child: MaterialApp(
+      child: GetMaterialApp(
         title: 'MoneyApp',
         theme: ThemeData(
           primarySwatch: colours,
@@ -52,7 +56,7 @@ const MaterialColor colours = const MaterialColor(
 );
 
 String currency = "£";
-List<int> balance = [150, 25]; // integers, decimal
+double balance = 0.00; // integers, decimal
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({key}) : super(key: key);
@@ -61,10 +65,23 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+var transactions;
+
 class _MyHomePageState extends State<MyHomePage> {
+  List tactions = [];
+
+  // Fetch content from the json file
+  Future<void> readJson() async {
+    final String response =
+        await rootBundle.rootBundle.loadString('assets/data.json');
+    final data = await json.decode(response);
+    return data["objects"];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
@@ -116,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             children: <TextSpan>[
                               TextSpan(
-                                text: "${balance[0]}",
+                                text: "${balance.toInt()}",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -132,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                               ),
                               TextSpan(
-                                text: "${balance[1]}",
+                                text: balance.toStringAsFixed(2).split('.')[1],
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -172,7 +189,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: <Widget>[
                             Container(
                               child: TextButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Get.to(() => TopUpPage());
+                                },
                                 child: Column(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
@@ -239,6 +258,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 margin: EdgeInsets.only(
                     top: MediaQuery.of(context).size.height * 0.025),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
                     // Recent Activity Text
                     Container(
@@ -255,337 +275,53 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    Column(
-                      children: <Widget>[
-                        // Today
-                        Container(
-                          margin: EdgeInsets.symmetric(
-                              vertical:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          child: Column(
-                            children: <Widget>[
-                              // Day
-                              Container(
-                                alignment: Alignment.centerLeft,
-                                margin: EdgeInsets.symmetric(
-                                    horizontal:
-                                        MediaQuery.of(context).size.width *
-                                            0.05,
-                                    vertical:
-                                        MediaQuery.of(context).size.height *
-                                            0.01),
-                                child: Text(
-                                  "TODAY",
-                                  textAlign: TextAlign.left,
-                                  style: TextStyle(
-                                    color: colours[300],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                              // Transaction
-                              Container(
-                                width: MediaQuery.of(context).size.width,
-                                height: MediaQuery.of(context).size.height / 15,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        // Icon
-                                        Container(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.075,
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.075,
-                                          margin: EdgeInsets.symmetric(
-                                              vertical: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.01,
-                                              horizontal: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.05),
-                                          decoration: BoxDecoration(
-                                              color: colours[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(5)),
-                                          child: Center(
-                                            child: Icon(
-                                              Icons.local_mall,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        // Name of Transaction
-                                        Container(
-                                          child: Text(
-                                            "eBay",
-                                            textAlign: TextAlign.left,
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    // Amount
-                                    Container(
-                                      margin: EdgeInsets.symmetric(
-                                          vertical: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.01,
-                                          horizontal: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.05),
-                                      child: RichText(
-                                        text: TextSpan(
-                                          text: "32",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 30,
-                                          ),
-                                          children: <TextSpan>[
-                                            TextSpan(
-                                              text: ".",
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: "00",
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: MediaQuery.of(context).size.width,
-                                height: MediaQuery.of(context).size.height / 15,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        // Icon
-                                        Container(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.075,
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.075,
-                                          margin: EdgeInsets.symmetric(
-                                              vertical: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.01,
-                                              horizontal: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.05),
-                                          decoration: BoxDecoration(
-                                              color: colours[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(5)),
-                                          child: Center(
-                                            child: Icon(
-                                              Icons.local_mall,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        // Name of Transaction
-                                        Container(
-                                          child: Text(
-                                            "Merton Council",
-                                            textAlign: TextAlign.left,
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    // Amount
-                                    Container(
-                                      margin: EdgeInsets.symmetric(
-                                          vertical: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.01,
-                                          horizontal: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.05),
-                                      child: RichText(
-                                        text: TextSpan(
-                                          text: "65",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 30,
-                                          ),
-                                          children: <TextSpan>[
-                                            TextSpan(
-                                              text: ".",
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: "00",
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: MediaQuery.of(context).size.width,
-                                height: MediaQuery.of(context).size.height / 15,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        // Icon
-                                        Container(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.075,
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.075,
-                                          margin: EdgeInsets.symmetric(
-                                              vertical: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.01,
-                                              horizontal: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.05),
-                                          decoration: BoxDecoration(
-                                              color: colours[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(5)),
-                                          child: Center(
-                                            child: Icon(
-                                              Icons.add_circle_rounded,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        // Name of Transaction
-                                        Container(
-                                          child: Text(
-                                            "Top Up",
-                                            textAlign: TextAlign.left,
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    // Amount
-                                    Container(
-                                      margin: EdgeInsets.symmetric(
-                                          vertical: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.01,
-                                          horizontal: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.05),
-                                      child: RichText(
-                                        text: TextSpan(
-                                          text: "+150",
-                                          style: TextStyle(
-                                            color: colours[200],
-                                            fontSize: 30,
-                                          ),
-                                          children: <TextSpan>[
-                                            TextSpan(
-                                              text: ".",
-                                              style: TextStyle(
-                                                color: colours[200],
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: "00",
-                                              style: TextStyle(
-                                                color: colours[200],
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      child: SingleChildScrollView(
+                        physics: ScrollPhysics(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            // Transaction
+                            FutureBuilder(
+                              future: readJson(),
+                              builder: (context, data) {
+                                if (data.hasError) {
+                                  //in case if error found
+                                  return Center(child: Text("${data.error}"));
+                                } else if (data.hasData) {
+                                  transactions = data.data as List<dynamic>;
+                                  balance = 0.0;
+                                  // for (int i = 0;
+                                  //     i < transactions.length;
+                                  //     i++) {
+                                  //   balance +=
+                                  //       double.parse(transactions[i][]["Amount"]);
+                                  // }
+                                  return ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    // scrollDirection: Axis.vertical,
+                                    itemCount: transactions[0].length,
+                                    itemBuilder:
+                                        (BuildContext content, int index) {
+                                      return TransactionDay(
+                                          transactions[0].keys.elementAt(index),
+                                          index);
+                                    },
+                                  );
+                                } else {
+                                  // show circular progress while data is getting fetched from json file
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                        // // Yesterday
-                        // Container(),
-                        // // Past
-                        // Container(),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -595,5 +331,198 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
+  }
+}
+
+class Transaction extends StatefulWidget {
+  final double amount;
+  final String name;
+  final int moneyIn;
+  Transaction(this.amount, this.name, this.moneyIn);
+
+  @override
+  TransactionState createState() => new TransactionState();
+}
+
+class TransactionState extends State<Transaction> {
+  @override
+  Widget build(BuildContext context) {
+    return new Container(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height / 15,
+      decoration: BoxDecoration(
+        color: Colors.white,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              // Icon
+              Container(
+                width: MediaQuery.of(context).size.width * 0.075,
+                height: MediaQuery.of(context).size.width * 0.075,
+                margin: EdgeInsets.symmetric(
+                    vertical: MediaQuery.of(context).size.height * 0.01,
+                    horizontal: MediaQuery.of(context).size.width * 0.05),
+                decoration: BoxDecoration(
+                    color: colours[200],
+                    borderRadius: BorderRadius.circular(5)),
+                child: Center(
+                  child: Icon(
+                    Icons.local_mall,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              // Name of Transaction
+              Container(
+                child: Text(
+                  widget.name,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Amount
+          Container(
+            margin: EdgeInsets.symmetric(
+                vertical: MediaQuery.of(context).size.height * 0.01,
+                horizontal: MediaQuery.of(context).size.width * 0.05),
+            child: RichText(
+              text: TextSpan(
+                text: widget.moneyIn == 1
+                    ? "+${widget.amount.toInt()}"
+                    : "${widget.amount.toInt()}",
+                style: TextStyle(
+                  color: widget.moneyIn == 1 ? colours[200] : Colors.black,
+                  fontSize: 30,
+                ),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: ".",
+                    style: TextStyle(
+                      color: widget.moneyIn == 1 ? colours[200] : Colors.black,
+                      fontSize: 20,
+                    ),
+                  ),
+                  TextSpan(
+                    text: widget.amount.toStringAsFixed(2).split('.')[1],
+                    style: TextStyle(
+                      color: widget.moneyIn == 1 ? colours[200] : Colors.black,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+int dayPurchaseInx = 1;
+
+class TransactionDay extends StatefulWidget {
+  TransactionDay(this.tdate, this.inx);
+  final String tdate;
+  final int inx;
+
+  @override
+  TransactionDayState createState() => new TransactionDayState();
+}
+
+class TransactionDayState extends State<TransactionDay> {
+  @override
+  Widget build(BuildContext context) {
+    // if (widget.inx < transactions.length &&
+    //     widget.tdate == transactions[widget.inx + 1]) {
+    //   dayPurchaseInx++;
+    // }
+    // if (dayPurchaseInx > 1) {
+    return new Container(
+      margin: EdgeInsets.symmetric(
+          vertical: MediaQuery.of(context).size.height * 0.01),
+      child: Column(
+        children: <Widget>[
+          // Day
+          Container(
+            alignment: Alignment.centerLeft,
+            margin: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.05,
+                vertical: MediaQuery.of(context).size.height * 0.01),
+            child: Text(
+              widget.tdate,
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                color: colours[300],
+                fontSize: 14,
+              ),
+            ),
+          ),
+          // Transaction
+          ListView.builder(
+            padding: EdgeInsets.zero,
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: transactions[0]["${widget.tdate}"].length,
+            itemBuilder: (BuildContext content, int index) {
+              return Transaction(
+                  double.parse(
+                      transactions[0]["${widget.tdate}"][index]["Amount"]),
+                  transactions[0]["${widget.tdate}"][index]["Name"],
+                  int.parse(
+                      transactions[0]["${widget.tdate}"][index]["InOut"]));
+            },
+          ),
+        ],
+      ),
+    );
+    // } else {
+    //   return new Container(
+    //     margin: EdgeInsets.symmetric(
+    //         vertical: MediaQuery.of(context).size.height * 0.01),
+    //     child: Column(
+    //       children: <Widget>[
+    //         // Day
+    //         Container(
+    //           alignment: Alignment.centerLeft,
+    //           margin: EdgeInsets.symmetric(
+    //               horizontal: MediaQuery.of(context).size.width * 0.05,
+    //               vertical: MediaQuery.of(context).size.height * 0.01),
+    //           child: Text(
+    //             widget.tdate,
+    //             textAlign: TextAlign.left,
+    //             style: TextStyle(
+    //               color: colours[300],
+    //               fontSize: 14,
+    //             ),
+    //           ),
+    //         ),
+    //         // Transaction
+    //         ListView.builder(
+    //           padding: EdgeInsets.zero,
+    //           physics: NeverScrollableScrollPhysics(),
+    //           shrinkWrap: true,
+    //           itemCount: 1,
+    //           itemBuilder: (BuildContext content, int index) {
+    //             return Transaction(
+    //                 double.parse(transactions[widget.inx]["Amount"]),
+    //                 transactions[widget.inx]["Name"],
+    //                 int.parse(transactions[widget.inx]["InOut"]));
+    //           },
+    //         ),
+    //       ],
+    //     ),
+    //   );
+    // }
   }
 }

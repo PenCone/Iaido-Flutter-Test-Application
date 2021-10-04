@@ -23,9 +23,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  get: ^4.3.8
+
   # Styling
-  splashscreen: ^1.2.0
-  # google_fonts: ^2.1.0
+  tinycolor: ^1.0.3
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -40,3 +41,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/data.json
