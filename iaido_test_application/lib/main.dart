@@ -3,10 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:iaido_test_application/pages.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/services.dart' as rootBundle;
-
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:splashscreen/splashscreen.dart';
+import 'package:splashscreen/splashscreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +15,23 @@ void main() async {
   });
 }
 
+List transactions = [];
+
+// Fetch content from the json file
+Future<void> readJson() async {
+  final String response =
+      await rootBundle.rootBundle.loadString('assets/data.json');
+  final data = await json.decode(response);
+  // return data["objects"];
+  // transactions = data.data as List<dynamic>;
+  return data["objects"];
+}
+
 class MyApp extends StatelessWidget {
+  void initState() async {
+    await readJson();
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -33,7 +48,32 @@ class MyApp extends StatelessWidget {
           //   Theme.of(context).textTheme,
           // ),
         ),
-        home: MyHomePage(),
+        home: Scaffold(
+          body: Stack(
+            children: <Widget>[
+              SplashScreen(
+                seconds:
+                    2, // the widget to run after running your splashscreen for 2 sec
+                navigateAfterSeconds: MyHomePage(),
+                backgroundColor: colours[200],
+                loaderColor: colours[100],
+              ),
+              Center(
+                child: Container(
+                  height: 250,
+                  child: Text(
+                    "MoneyApp",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 48,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -65,17 +105,38 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-var transactions;
-
 class _MyHomePageState extends State<MyHomePage> {
-  List tactions = [];
+  bool _visible = false;
+  @override
+  void initState() {
+    super.initState();
+    transitionTimer();
+  }
 
-  // Fetch content from the json file
-  Future<void> readJson() async {
-    final String response =
-        await rootBundle.rootBundle.loadString('assets/data.json');
-    final data = await json.decode(response);
-    return data["objects"];
+  transitionTimer() {
+    Timer(Duration(milliseconds: 800), () {
+      setState(() {
+        _visible = true;
+      });
+    });
+  }
+
+  Future<void> balanceCalc() async {
+    balance = 0.0;
+    if (transactions.length != 0) {
+      print(transactions[0].keys.elementAt(0));
+      for (var j in transactions[0].keys) {
+        for (var k in transactions[0][j]) {
+          print("Date : $j, Amount : ${k["Amount"]}, In: ${k["InOut"]}");
+          if (k["InOut"] == "1")
+            balance += double.parse(k["Amount"]);
+          else
+            balance -= double.parse(k["Amount"]);
+          print(balance);
+        }
+      }
+    }
+    // return transactions.length;
   }
 
   @override
@@ -114,51 +175,77 @@ class _MyHomePageState extends State<MyHomePage> {
                       color: colours[200],
                     ),
                     child: Center(
-                      child: Container(
-                        height: MediaQuery.of(context).size.height / 3,
-                        width: MediaQuery.of(context).size.width / 2,
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                        ),
-                        alignment: Alignment.center,
-                        // The Text needs to be customised to allow for different font sizes
-                        // So RichText, TextSpan combo works well here for the use of children
-                        child: RichText(
-                          text: TextSpan(
-                            text: "$currency",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 36,
-                            ),
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: "${balance.toInt()}",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 56,
+                      child: FutureBuilder(
+                        future: readJson(),
+                        builder: (context, data) {
+                          if (data.hasError) {
+                            //in case if error found
+                            return Center(child: Text("${data.error}"));
+                          } else if (data.hasData) {
+                            if (transactions.length == 0)
+                              transactions = data.data as List<dynamic>;
+                            else
+                              print("not updated");
+                            balanceCalc();
+                            return AnimatedOpacity(
+                              opacity: _visible ? 1.0 : 0.0,
+                              duration: const Duration(milliseconds: 1500),
+                              child: Container(
+                                height: MediaQuery.of(context).size.height / 3,
+                                width: MediaQuery.of(context).size.width,
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                ),
+                                alignment: Alignment.center,
+                                // The Text needs to be customised to allow for different font sizes
+                                // So RichText, TextSpan combo works well here for the use of children
+                                child: RichText(
+                                  text: TextSpan(
+                                    text: "$currency",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 36,
+                                    ),
+                                    children: <TextSpan>[
+                                      TextSpan(
+                                        text: "${balance.toInt()}",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 56,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: ".",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 36,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: balance
+                                            .toStringAsFixed(2)
+                                            .split('.')[1],
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 36,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              TextSpan(
-                                text: ".",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 36,
-                                ),
-                              ),
-                              TextSpan(
-                                text: balance.toStringAsFixed(2).split('.')[1],
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 36,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                            );
+                          } else {
+                            // show circular progress while data is getting fetched from json file
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                        },
                       ),
                     ),
                   ),
@@ -169,7 +256,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       height: MediaQuery.of(context).size.height * 0.15,
                       width: MediaQuery.of(context).size.width * 0.9,
                       margin: EdgeInsets.only(
-                          top: MediaQuery.of(context).size.height * 0.26),
+                        top: MediaQuery.of(context).size.height * 0.26,
+                        // right: offset,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(15.0),
@@ -183,70 +272,76 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       ),
                       // For the icon buttons
-                      child: Container(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            Container(
-                              child: TextButton(
-                                onPressed: () {
-                                  Get.to(() => TopUpPage());
-                                },
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Container(
-                                      // borders used for design process to get alignment right
-                                      // decoration: BoxDecoration(
-                                      //   border: Border.all(
-                                      //     color: Colors.red,
-                                      //   ),
-                                      // ),
-                                      child: Image.asset(
-                                          "assets/images/pay-icon.png"),
-                                    ),
-                                    Text(
-                                      "Pay",
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 14,
+                      child: AnimatedOpacity(
+                        opacity: _visible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 1500),
+                        child: Container(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              Container(
+                                child: TextButton(
+                                  onPressed: () {
+                                    Get.to(() => TopUpPage(topup: false));
+                                  },
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Container(
+                                        // borders used for design process to get alignment right
+                                        // decoration: BoxDecoration(
+                                        //   border: Border.all(
+                                        //     color: Colors.red,
+                                        //   ),
+                                        // ),
+                                        child: Image.asset(
+                                            "assets/images/pay-icon.png"),
                                       ),
-                                    ),
-                                  ],
+                                      Text(
+                                        "Pay",
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            Container(
-                              child: TextButton(
-                                onPressed: () {},
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Container(
-                                      // decoration: BoxDecoration(
-                                      //   border: Border.all(
-                                      //     color: Colors.red,
-                                      //   ),
-                                      // ),
-                                      child: Image.asset(
-                                          "assets/images/top-up-icon.png"),
-                                    ),
-                                    Text(
-                                      "Top Up",
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 14,
+                              Container(
+                                child: TextButton(
+                                  onPressed: () {
+                                    Get.to(() => TopUpPage(topup: true));
+                                  },
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Container(
+                                        // decoration: BoxDecoration(
+                                        //   border: Border.all(
+                                        //     color: Colors.red,
+                                        //   ),
+                                        // ),
+                                        child: Image.asset(
+                                            "assets/images/top-up-icon.png"),
                                       ),
-                                    ),
-                                  ],
+                                      Text(
+                                        "Top Up",
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -275,51 +370,53 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    Container(
-                      height: MediaQuery.of(context).size.height * 0.5,
-                      child: SingleChildScrollView(
-                        physics: ScrollPhysics(),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: <Widget>[
-                            // Transaction
-                            FutureBuilder(
-                              future: readJson(),
-                              builder: (context, data) {
-                                if (data.hasError) {
-                                  //in case if error found
-                                  return Center(child: Text("${data.error}"));
-                                } else if (data.hasData) {
-                                  transactions = data.data as List<dynamic>;
-                                  balance = 0.0;
-                                  // for (int i = 0;
-                                  //     i < transactions.length;
-                                  //     i++) {
-                                  //   balance +=
-                                  //       double.parse(transactions[i][]["Amount"]);
-                                  // }
-                                  return ListView.builder(
-                                    padding: EdgeInsets.zero,
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    // scrollDirection: Axis.vertical,
-                                    itemCount: transactions[0].length,
-                                    itemBuilder:
-                                        (BuildContext content, int index) {
-                                      return TransactionDay(
-                                          transactions[0].keys.elementAt(index),
-                                          index);
-                                    },
-                                  );
-                                } else {
-                                  // show circular progress while data is getting fetched from json file
-                                  return Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
+                    AnimatedOpacity(
+                      opacity: _visible ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 1500),
+                      child: Container(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: SingleChildScrollView(
+                          physics: ScrollPhysics(),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: <Widget>[
+                              // Transaction
+                              FutureBuilder(
+                                future: readJson(),
+                                builder: (context, data) {
+                                  if (data.hasError) {
+                                    //in case if error found
+                                    return Center(child: Text("${data.error}"));
+                                  } else if (data.hasData) {
+                                    if (transactions.length == 0)
+                                      transactions = data.data as List<dynamic>;
+                                    else
+                                      print("not updated");
+                                    return ListView.builder(
+                                      padding: EdgeInsets.zero,
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      // scrollDirection: Axis.vertical,
+                                      itemCount: transactions[0].length,
+                                      itemBuilder:
+                                          (BuildContext content, int index) {
+                                        return TransactionDay(
+                                            transactions[0]
+                                                .keys
+                                                .elementAt(index),
+                                            index);
+                                      },
+                                    );
+                                  } else {
+                                    // show circular progress while data is getting fetched from json file
+                                    return Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -371,7 +468,7 @@ class TransactionState extends State<Transaction> {
                     borderRadius: BorderRadius.circular(5)),
                 child: Center(
                   child: Icon(
-                    Icons.local_mall,
+                    widget.moneyIn == 1 ? Icons.add_circle : Icons.local_mall,
                     color: Colors.white,
                   ),
                 ),
@@ -429,8 +526,6 @@ class TransactionState extends State<Transaction> {
   }
 }
 
-int dayPurchaseInx = 1;
-
 class TransactionDay extends StatefulWidget {
   TransactionDay(this.tdate, this.inx);
   final String tdate;
@@ -443,11 +538,12 @@ class TransactionDay extends StatefulWidget {
 class TransactionDayState extends State<TransactionDay> {
   @override
   Widget build(BuildContext context) {
-    // if (widget.inx < transactions.length &&
-    //     widget.tdate == transactions[widget.inx + 1]) {
-    //   dayPurchaseInx++;
-    // }
-    // if (dayPurchaseInx > 1) {
+    String t = widget.tdate;
+    if (widget.tdate == "04 October") {
+      t = "TODAY";
+    } else if (widget.tdate == "03 October") {
+      t = "YESTERDAY";
+    }
     return new Container(
       margin: EdgeInsets.symmetric(
           vertical: MediaQuery.of(context).size.height * 0.01),
@@ -460,7 +556,7 @@ class TransactionDayState extends State<TransactionDay> {
                 horizontal: MediaQuery.of(context).size.width * 0.05,
                 vertical: MediaQuery.of(context).size.height * 0.01),
             child: Text(
-              widget.tdate,
+              t,
               textAlign: TextAlign.left,
               style: TextStyle(
                 color: colours[300],

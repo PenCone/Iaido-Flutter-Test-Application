@@ -24,9 +24,11 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.3.8
+  collection: ^1.15.0
 
   # Styling
   tinycolor: ^1.0.3
+  splashscreen: ^1.2.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -72,6 +72,11 @@
         "Name":"Nandos",
         "Amount":"73.88",
         "InOut":"0"
+        },
+        { 
+        "Name":"PayPal",
+        "Amount":"1736.88",
+        "InOut":"1"
         }
     ]
 }

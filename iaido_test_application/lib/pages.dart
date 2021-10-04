@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:iaido_test_application/main.dart';
 import 'package:tinycolor/tinycolor.dart';
 import 'package:get/get.dart';
+import 'dart:async';
 
 class TopUpPage extends StatefulWidget {
-  TopUpPage({key}) : super(key: key);
+  TopUpPage({key, required this.topup}) : super(key: key);
+  final bool topup;
 
   @override
   TopUpPageState createState() => TopUpPageState();
@@ -15,7 +17,21 @@ class TopUpPageState extends State<TopUpPage> {
   int amountInx = 0, amountD = 0;
   double amount = 0.00; // integers, decimal
   bool decimal = false;
-  // int amountInt = 10;
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    transitionTimer();
+  }
+
+  transitionTimer() {
+    Timer(Duration(milliseconds: 800), () {
+      setState(() {
+        _visible = true;
+      });
+    });
+  }
 
   Widget numberButton(int number) {
     String t = "";
@@ -287,34 +303,49 @@ class TopUpPageState extends State<TopUpPage> {
                       ),
                     ),
                     // Next Button
-                    Container(
-                      decoration: BoxDecoration(
-                        color:
-                            Color(0x7FF9E6F3), // default pink with 50% opacity
-                        borderRadius: BorderRadius.circular(5.0),
-                      ),
-                      height: MediaQuery.of(context).size.height * 0.06,
-                      width: MediaQuery.of(context).size.width * 0.66,
-                      margin: EdgeInsets.only(
-                          top: MediaQuery.of(context).size.height * 0.05),
-                      child: TextButton(
-                        onPressed: () {
-                          Get.off(() => WhoPage(amount: amount));
-                        },
-                        style: ButtonStyle(
-                          elevation: MaterialStateProperty.all(0),
-                          overlayColor: MaterialStateProperty.all(
-                              colours[200].darken(10)),
-                          padding: MaterialStateProperty.all(EdgeInsets.all(0)),
+                    AnimatedOpacity(
+                      opacity: _visible ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 750),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color(
+                              0x7FF9E6F3), // default pink with 50% opacity
+                          borderRadius: BorderRadius.circular(5.0),
                         ),
-                        child: Container(
-                          child: Center(
-                            child: Text(
-                              "Next",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 26,
+                        height: MediaQuery.of(context).size.height * 0.06,
+                        width: MediaQuery.of(context).size.width * 0.66,
+                        margin: EdgeInsets.only(
+                            top: MediaQuery.of(context).size.height * 0.05),
+                        child: TextButton(
+                          onPressed: () {
+                            if (widget.topup == true) {
+                              Map td = {
+                                "Name": "Top Up",
+                                "Amount": "$amount",
+                                "InOut": "1"
+                              };
+                              transactions[0]["04 October"].insert(0, td);
+                              Get.offAll(() => MyHomePage());
+                            } else {
+                              Get.off(() => WhoPage(amount: amount));
+                            }
+                          },
+                          style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(0),
+                            overlayColor: MaterialStateProperty.all(
+                                colours[200].darken(10)),
+                            padding:
+                                MaterialStateProperty.all(EdgeInsets.all(0)),
+                          ),
+                          child: Container(
+                            child: Center(
+                              child: Text(
+                                widget.topup == true ? "Top Up" : "Next",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                ),
                               ),
                             ),
                           ),
@@ -342,6 +373,21 @@ class WhoPage extends StatefulWidget {
 
 class WhoPageState extends State<WhoPage> {
   String name = "";
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    transitionTimer();
+  }
+
+  transitionTimer() {
+    Timer(Duration(milliseconds: 800), () {
+      setState(() {
+        _visible = true;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -449,48 +495,55 @@ class WhoPageState extends State<WhoPage> {
                           )),
                     ),
                     // Pay Button
-                    Container(
-                      decoration: BoxDecoration(
-                        color:
-                            Color(0x7FF9E6F3), // default pink with 50% opacity
-                        borderRadius: BorderRadius.circular(5.0),
-                      ),
-                      height: MediaQuery.of(context).size.height * 0.06,
-                      width: MediaQuery.of(context).size.width * 0.66,
-                      margin: EdgeInsets.only(
-                          top: MediaQuery.of(context).size.height * 0.05),
-                      child: TextButton(
-                        onPressed: () {
-                          if (name == "") {
-                            Get.defaultDialog(
-                              title: "Error",
-                              middleText: "Please enter a name",
-                              backgroundColor: colours[50],
-                              titleStyle: TextStyle(color: Colors.black),
-                              middleTextStyle: TextStyle(color: colours[200]),
-                            );
-                          } else {
-                            int tm = transactions[0]["04 October"].length;
-                            transactions[0]["04 October"][tm]["Amount"] =
-                                widget.amount;
-                            transactions[0]["04 October"][tm]["Name"] = name;
-                            Get.offAll(() => MyHomePage());
-                          }
-                        },
-                        style: ButtonStyle(
-                          elevation: MaterialStateProperty.all(0),
-                          overlayColor: MaterialStateProperty.all(
-                              colours[200].darken(10)),
-                          padding: MaterialStateProperty.all(EdgeInsets.all(0)),
+                    AnimatedOpacity(
+                      opacity: _visible ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 750),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color(
+                              0x7FF9E6F3), // default pink with 50% opacity
+                          borderRadius: BorderRadius.circular(5.0),
                         ),
-                        child: Container(
-                          child: Center(
-                            child: Text(
-                              "Pay",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 26,
+                        height: MediaQuery.of(context).size.height * 0.06,
+                        width: MediaQuery.of(context).size.width * 0.66,
+                        margin: EdgeInsets.only(
+                            top: MediaQuery.of(context).size.height * 0.05),
+                        child: TextButton(
+                          onPressed: () {
+                            if (name == "") {
+                              Get.defaultDialog(
+                                title: "Error",
+                                middleText: "Please enter a name",
+                                backgroundColor: colours[50],
+                                titleStyle: TextStyle(color: Colors.black),
+                                middleTextStyle: TextStyle(color: colours[200]),
+                              );
+                            } else {
+                              Map td = {
+                                "Name": name,
+                                "Amount": "${widget.amount}",
+                                "InOut": "0"
+                              };
+                              transactions[0]["04 October"].insert(0, td);
+                              Get.offAll(() => MyHomePage());
+                            }
+                          },
+                          style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(0),
+                            overlayColor: MaterialStateProperty.all(
+                                colours[200].darken(10)),
+                            padding:
+                                MaterialStateProperty.all(EdgeInsets.all(0)),
+                          ),
+                          child: Container(
+                            child: Center(
+                              child: Text(
+                                "Pay",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                ),
                               ),
                             ),
                           ),
@@ -506,4 +559,12 @@ class WhoPageState extends State<WhoPage> {
       ),
     );
   }
+}
+
+class transdata {
+  String Name;
+  double Amount;
+  int InOut;
+
+  transdata(this.Name, this.Amount, this.InOut);
 }
