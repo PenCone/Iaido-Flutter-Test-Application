@@ -48,23 +48,31 @@ class TopUpPageState extends State<TopUpPage> {
     }
     return TextButton(
       onPressed: () {
-        int temp = (amount.toStringAsFixed(2)).length;
+        int temp = (amount.toStringAsFixed(2))
+            .length; // taking the double as 2 decimal places
         switch (alt) {
           case 0:
             setState(() {
+              // amountinx is being used as a pointer to know where the current digit is being edited
               if (amountInx < (temp - 2)) {
+                //if it's the integer, shift it up by x10 and add new value
                 if (temp > 6) {
-                  amount = (amount - (amount % 10));
+                  // just limiting the input amount to 9999.99
+                  amount = (amount -
+                      (amount %
+                          10)); // this makes it so it overwrites the last written number
                   amount += number;
                 } else {
                   amount = (amount * 10) + number;
                   amountInx++;
                 }
               } else if (amountInx == (temp - 1)) {
+                // if tenths
                 amount = (amount - (amount % 1.0));
                 amount = amount + (number / 10);
                 amountInx++;
               } else {
+                // else must be hundredths, also overwrites last number
                 double a = (amount * 100) %
                     10; // this is calculated this way due to precision errors
                 amount = amount - (a / 100);
@@ -78,11 +86,12 @@ class TopUpPageState extends State<TopUpPage> {
 
             break;
           case 1:
-            amountInx += 2;
+            amountInx += 2; // shifts past the decimal place
             if (amountInx > temp) amountInx = temp;
             break;
           case 2:
             setState(() {
+              // removes the last digit and replaces it with a zero if its decimal or a unit
               if (amountInx < (temp - 2)) {
                 amount = (amount - (amount % 10)) / 10;
                 if (amountInx > 0) amountInx--;
@@ -136,6 +145,7 @@ class TopUpPageState extends State<TopUpPage> {
         leading: Container(),
         actions: <Widget>[
           ElevatedButton(
+            // personally I think the design would look nicer if it was just a white X on the transparent background container
             style: ElevatedButton.styleFrom(
               primary: Colors.white,
               shape: CircleBorder(),
@@ -319,6 +329,7 @@ class TopUpPageState extends State<TopUpPage> {
                         child: TextButton(
                           onPressed: () {
                             if (widget.topup == true) {
+                              // adding the new data to the transactions map
                               Map td = {
                                 "Name": "Top Up",
                                 "Amount": "$amount",
@@ -466,6 +477,7 @@ class WhoPageState extends State<WhoPage> {
                       //   color: colours[200],
                       // ),
                       child: new TextFormField(
+                          // simple form to take the name
                           onChanged: (text) {
                             print('First text field: $text');
                             name = text;
@@ -559,12 +571,4 @@ class WhoPageState extends State<WhoPage> {
       ),
     );
   }
-}
-
-class transdata {
-  String Name;
-  double Amount;
-  int InOut;
-
-  transdata(this.Name, this.Amount, this.InOut);
 }

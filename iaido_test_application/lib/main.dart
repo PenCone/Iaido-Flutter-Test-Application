@@ -113,6 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     transitionTimer();
   }
 
+  // A Timer so the widgets fade in after 800ms
   transitionTimer() {
     Timer(Duration(milliseconds: 800), () {
       setState(() {
@@ -121,6 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // This calculates the balance of the user by adding all the amount data in the json file
   Future<void> balanceCalc() async {
     balance = 0.0;
     if (transactions.length != 0) {
@@ -176,14 +178,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     child: Center(
                       child: FutureBuilder(
-                        future: readJson(),
+                        future: readJson(), // retrieving the json data
                         builder: (context, data) {
                           if (data.hasError) {
                             //in case if error found
                             return Center(child: Text("${data.error}"));
                           } else if (data.hasData) {
                             if (transactions.length == 0)
-                              transactions = data.data as List<dynamic>;
+                              transactions = data.data
+                                  as List<dynamic>; // putting data into map
                             else
                               print("not updated");
                             balanceCalc();
@@ -279,6 +282,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
+                              // Pay icon - with some more time designing the splashshape could be more smooth
                               Container(
                                 child: TextButton(
                                   onPressed: () {
@@ -310,6 +314,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                               ),
+                              // Top up icon
                               Container(
                                 child: TextButton(
                                   onPressed: () {
@@ -370,6 +375,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
+                    // Transaction
                     AnimatedOpacity(
                       opacity: _visible ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 1500),
@@ -380,9 +386,11 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: <Widget>[
-                              // Transaction
                               FutureBuilder(
-                                future: readJson(),
+                                future: readJson(), // fetch json data -
+                                // I'm aware it's inefficient to do this on both futures,
+                                // but it seemed the easiest way to allow both widgets to
+                                // wait for the data to be read before being drawn
                                 builder: (context, data) {
                                   if (data.hasError) {
                                     //in case if error found
@@ -393,6 +401,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     else
                                       print("not updated");
                                     return ListView.builder(
+                                      // building the variable list of transactions
+                                      // this list is for each day of transactions
                                       padding: EdgeInsets.zero,
                                       shrinkWrap: true,
                                       physics: NeverScrollableScrollPhysics(),
@@ -431,6 +441,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+// a class for transaction row widget
 class Transaction extends StatefulWidget {
   final double amount;
   final String name;
@@ -468,7 +479,10 @@ class TransactionState extends State<Transaction> {
                     borderRadius: BorderRadius.circular(5)),
                 child: Center(
                   child: Icon(
-                    widget.moneyIn == 1 ? Icons.add_circle : Icons.local_mall,
+                    widget.moneyIn == 1
+                        ? Icons.add_circle
+                        : Icons
+                            .local_mall, // dependent on if money is coming in or out
                     color: Colors.white,
                   ),
                 ),
@@ -495,7 +509,7 @@ class TransactionState extends State<Transaction> {
             child: RichText(
               text: TextSpan(
                 text: widget.moneyIn == 1
-                    ? "+${widget.amount.toInt()}"
+                    ? "+${widget.amount.toInt()}" // these have been converted to int to truncate the decimal so the formatting is correct
                     : "${widget.amount.toInt()}",
                 style: TextStyle(
                   color: widget.moneyIn == 1 ? colours[200] : Colors.black,
@@ -510,7 +524,8 @@ class TransactionState extends State<Transaction> {
                     ),
                   ),
                   TextSpan(
-                    text: widget.amount.toStringAsFixed(2).split('.')[1],
+                    text: widget.amount.toStringAsFixed(2).split('.')[
+                        1], // this is to convert the decimal numbers into a readable format
                     style: TextStyle(
                       color: widget.moneyIn == 1 ? colours[200] : Colors.black,
                       fontSize: 20,
@@ -526,6 +541,7 @@ class TransactionState extends State<Transaction> {
   }
 }
 
+// the transaction class for each day
 class TransactionDay extends StatefulWidget {
   TransactionDay(this.tdate, this.inx);
   final String tdate;
@@ -540,6 +556,7 @@ class TransactionDayState extends State<TransactionDay> {
   Widget build(BuildContext context) {
     String t = widget.tdate;
     if (widget.tdate == "04 October") {
+      // This could be made variable by comparing it to todays date, but with the format of the data, this was easiest for now
       t = "TODAY";
     } else if (widget.tdate == "03 October") {
       t = "YESTERDAY";
@@ -572,53 +589,16 @@ class TransactionDayState extends State<TransactionDay> {
             itemCount: transactions[0]["${widget.tdate}"].length,
             itemBuilder: (BuildContext content, int index) {
               return Transaction(
-                  double.parse(
-                      transactions[0]["${widget.tdate}"][index]["Amount"]),
-                  transactions[0]["${widget.tdate}"][index]["Name"],
-                  int.parse(
-                      transactions[0]["${widget.tdate}"][index]["InOut"]));
+                  double.parse(transactions[0]["${widget.tdate}"][index]
+                      ["Amount"]), // amount in transaction
+                  transactions[0]["${widget.tdate}"][index][
+                      "Name"], // name of who the transaction is being sent to/received from
+                  int.parse(transactions[0]["${widget.tdate}"][index]
+                      ["InOut"])); // whether is being received or sent
             },
           ),
         ],
       ),
     );
-    // } else {
-    //   return new Container(
-    //     margin: EdgeInsets.symmetric(
-    //         vertical: MediaQuery.of(context).size.height * 0.01),
-    //     child: Column(
-    //       children: <Widget>[
-    //         // Day
-    //         Container(
-    //           alignment: Alignment.centerLeft,
-    //           margin: EdgeInsets.symmetric(
-    //               horizontal: MediaQuery.of(context).size.width * 0.05,
-    //               vertical: MediaQuery.of(context).size.height * 0.01),
-    //           child: Text(
-    //             widget.tdate,
-    //             textAlign: TextAlign.left,
-    //             style: TextStyle(
-    //               color: colours[300],
-    //               fontSize: 14,
-    //             ),
-    //           ),
-    //         ),
-    //         // Transaction
-    //         ListView.builder(
-    //           padding: EdgeInsets.zero,
-    //           physics: NeverScrollableScrollPhysics(),
-    //           shrinkWrap: true,
-    //           itemCount: 1,
-    //           itemBuilder: (BuildContext content, int index) {
-    //             return Transaction(
-    //                 double.parse(transactions[widget.inx]["Amount"]),
-    //                 transactions[widget.inx]["Name"],
-    //                 int.parse(transactions[widget.inx]["InOut"]));
-    //           },
-    //         ),
-    //       ],
-    //     ),
-    //   );
-    // }
   }
 }
